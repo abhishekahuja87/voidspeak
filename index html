@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidSpeak | Release into the Void</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #cccccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        p.subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        /* Textarea and Container for Ash Effect */
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 1.1rem;
+            resize: none;
+            outline: none;
+            transition: opacity 2s ease-out, transform 2s ease-out;
+        }
+
+        /* The Ash Dissolve Animation Classes */
+        .dissolving {
+            opacity: 0 !important;
+            transform: translateY(-20px) scale(0.95);
+            filter: blur(4px);
+            pointer-events: none;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid #555;
+            color: #999;
+            padding: 10px 20px;
+            margin-top: 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        /* Map Styling */
+        #map {
+            width: 100%;
+            max-width: 800px;
+            height: 350px;
+            border-radius: 4px;
+            border: 1px solid #222;
+            background: #0d0d0d;
+        }
+
+        /* Customizing Leaflet to look dark and minimal */
+        .leaflet-container {
+            background: #0d0d0d !important;
+        }
+        .leaflet-bar a {
+            background-color: #111 !important;
+            color: #fff !important;
+            border-bottom: 1px solid #333 !important;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #444;
+            text-align: center;
+        }
+
+        footer a {
+            color: #666;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>VOIDSPEAK</h1>
+        <p class="subtitle">Type your secret. Release it forever. Watch the world let go.</p>
+    </header>
+
+    <div class="container">
+        <div class="input-wrapper">
+            <textarea id="secretInput" placeholder="Write something you need to get off your chest..."></textarea>
+        </div>
+        <button id="releaseBtn" onclick="releaseToVoid()">RELEASE INTO THE VOID</button>
+    </div>
+
+    <div id="map"></div>
+
+    <footer>
+        <p>© 2026 VoidSpeak | <a href="#privacy" onclick="alert('Privacy Guarantee: This website does not possess a backend or database for storing text. Your input vanishes permanently from your browser cache the instant you click Release.')">Privacy & Philosophy</a></p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. Initialize the Map centered on the world
+        const map = L.map('map', {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([20, 0], 2);
+
+        // 2. Load a beautiful, highly minimalist Dark Matter map tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // 3. The Function that runs when clicking "Release"
+        function releaseToVoid() {
+            const textarea = document.getElementById('secretInput');
+            const button = document.getElementById('releaseBtn');
+            
+            if (textarea.value.trim() === "") {
+                alert("The void accepts everything, but you must type something first.");
+                return;
+            }
+
+            // Disable UI inputs during animation
+            textarea.disabled = true;
+            button.disabled = true;
+
+            // Trigger the "Ash/Dissolve" CSS animation
+            textarea.classList.add('dissolving');
+
+            // Fetch user's rough location via a completely free browser API
+            fetch('https://ipapi.co/json/')
+                .then(response => response.json())
+                .then(data => {
+                    if(data.latitude && data.longitude) {
+                        // Plot a glowing circle on the map at their coordinates
+                        const pulseCircle = L.circleMarker([data.latitude, data.longitude], {
+                            color: '#ffffff',
+                            fillColor: '#ffffff',
+                            fillOpacity: 0.6,
+                            radius: 8
+                        }).addTo(map);
+
+                        // Pan smoothly to their general area to make it interactive
+                        map.panTo([data.latitude, data.longitude]);
+
+                        // Make the marker fade out slightly after 4 seconds to keep map clean
+                        setTimeout(() => {
+                            pulseCircle.setStyle({fillOpacity: 0.2, opacity: 0.3});
+                        }, 4000);
+                    }
+                })
+                .catch(err => {
+                    console.log("Location fetch skipped or blocked, dropping generic center pulse.");
+                    // Fallback marker in case of ad-blockers blocking location APIs
+                    L.circleMarker([20, 0], { color: '#fff', radius: 6 }).addTo(map);
+                });
+
+            // Reset the text area completely after animation completes (2.5 seconds)
+            setTimeout(() => {
+                textarea.value = "";
+                textarea.classList.remove('dissolving');
+                textarea.disabled = false;
+                button.disabled = false;
+                textarea.placeholder = "It is gone. Write another if you must...";
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
