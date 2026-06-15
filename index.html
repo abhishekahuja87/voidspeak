@@ -20,6 +20,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VoidSpeak | Release into the Void</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
         * {
             margin: 0;
@@ -37,25 +38,28 @@
             min-height: 100vh;
             overflow-x: hidden;
             padding: 20px;
+            position: relative;
         }
 
         header {
             text-align: center;
-            margin-top: 40px;
-            margin-bottom: 20px;
+            margin-top: 10px;
+            margin-bottom: 25px;
+            z-index: 5;
         }
 
         h1 {
             font-size: 2rem;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             color: #ffffff;
+            margin: 0;
             text-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
 
         p.subtitle {
             font-size: 0.9rem;
             color: #666;
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
         .container {
@@ -63,15 +67,15 @@
             max-width: 600px;
             position: relative;
             margin-bottom: 40px;
+            z-index: 5;
         }
 
-        /* Textarea and Container for Ash Effect */
         .input-wrapper {
             position: relative;
             width: 100%;
             height: 150px;
             background: #111;
-            border: 1px solid #333;
+            border: 1px solid #222;
             border-radius: 4px;
             padding: 15px;
         }
@@ -85,72 +89,90 @@
             font-size: 1.1rem;
             resize: none;
             outline: none;
-            transition: opacity 2s ease-out, transform 2s ease-out;
+            transition: color 0.3s ease, filter 0.5s ease;
         }
 
-        /* The Ash Dissolve Animation Classes */
-        .dissolving {
-            opacity: 0 !important;
-            transform: translateY(-20px) scale(0.95);
+        /* Seared text effect during release */
+        .text-burn-out {
+            color: #ff3300 !important;
             filter: blur(4px);
+            caret-color: transparent !important;
             pointer-events: none;
+            text-shadow: 0 0 8px #ff3300;
+        }
+
+        /* CRITICAL: Full screen overlays for unbounded particle drifting */
+        #burnCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999; /* Higher than map layers and inputs */
         }
 
         button {
             background: transparent;
-            border: 1px solid #555;
+            border: 1px solid #444;
             color: #999;
-            padding: 10px 20px;
+            padding: 12px 20px;
             margin-top: 15px;
             cursor: pointer;
             border-radius: 4px;
             transition: all 0.3s ease;
             width: 100%;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         button:hover {
             background: #ffffff;
             color: #000000;
             border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px rgba(255,255,255,0.15);
         }
 
-        /* Map Styling */
+        button:disabled {
+            border-color: #111 !important;
+            color: #333 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            cursor: default;
+        }
+
         #map {
             width: 100%;
             max-width: 800px;
             height: 350px;
             border-radius: 4px;
-            border: 1px solid #222;
+            border: 1px solid #1a1a1a;
             background: #0d0d0d;
+            z-index: 1;
         }
 
-        /* Customizing Leaflet to look dark and minimal */
         .leaflet-container {
             background: #0d0d0d !important;
-        }
-        .leaflet-bar a {
-            background-color: #111 !important;
-            color: #fff !important;
-            border-bottom: 1px solid #333 !important;
         }
 
         footer {
             margin-top: auto;
-            padding: 20px;
+            padding: 30px 20px;
             font-size: 0.8rem;
-            color: #444;
+            color: #333;
             text-align: center;
+            z-index: 5;
         }
 
         footer a {
-            color: #666;
+            color: #555;
             text-decoration: none;
         }
     </style>
 </head>
 <body>
+
+    <canvas id="burnCanvas"></canvas>
 
     <header>
         <h1>VOIDSPEAK</h1>
@@ -158,7 +180,7 @@
     </header>
 
     <div class="container">
-        <div class="input-wrapper">
+        <div class="input-wrapper" id="wrapperBounds">
             <textarea id="secretInput" placeholder="Write something you need to get off your chest..."></textarea>
         </div>
         <button id="releaseBtn" onclick="releaseToVoid()">RELEASE INTO THE VOID</button>
@@ -172,70 +194,144 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. Initialize the Map centered on the world
+        // Initialize Map
         const map = L.map('map', {
             zoomControl: true,
             attributionControl: false
         }).setView([20, 0], 2);
 
-        // 2. Load a beautiful, highly minimalist Dark Matter map tile layer
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 19
         }).addTo(map);
 
-        // 3. The Function that runs when clicking "Release"
+        // Particle Physics Engine Setup
+        const canvas = document.getElementById('burnCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class EmberParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3.5 + 1;
+                // Wider velocity vectors for violent outward eruption
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * -5 - 2; // Upward drift speed
+                
+                // Color array representing burning cycle: hot orange, searing red, ash charcoal
+                const colors = [
+                    `rgba(255, 68, 0, ${Math.random() * 0.4 + 0.6})`,  // Hot Orange
+                    `rgba(230, 0, 0, ${Math.random() * 0.4 + 0.6})`,    // Deep Searing Red
+                    `rgba(40, 40, 40, ${Math.random() * 0.3 + 0.4})`    // Ash Smoke
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.opacity = 1;
+                this.fade = Math.random() * 0.01 + 0.005; // Slower fade out for long distance flight
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                // Add a small wind sway effect
+                this.x += Math.sin(this.y / 30) * 0.5;
+                this.opacity -= this.fade;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.shadowBlur = this.color.includes('255') || this.color.includes('230') ? 8 : 0;
+                ctx.shadowColor = '#ff4400'; // Creates a subtle fire glow
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset canvas context state
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].opacity <= 0 || particles[i].y < 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            if (particles.length > 0) {
+                requestAnimationFrame(animateParticles);
+            }
+        }
+
         function releaseToVoid() {
             const textarea = document.getElementById('secretInput');
             const button = document.getElementById('releaseBtn');
+            const wrapper = document.getElementById('wrapperBounds');
             
             if (textarea.value.trim() === "") {
                 alert("The void accepts everything, but you must type something first.");
                 return;
             }
 
-            // Disable UI inputs during animation
             textarea.disabled = true;
             button.disabled = true;
 
-            // Trigger the "Ash/Dissolve" CSS animation
-            textarea.classList.add('dissolving');
+            // Find exactly where the text input wrapper sits on the mobile/desktop layout window
+            const rect = wrapper.getBoundingClientRect();
+            resizeCanvas();
 
-            // Fetch user's rough location via a completely free browser API
+            // Spawn up to 450 fiery ember particles across the text box container space
+            const totalEmbers = Math.min(textarea.value.length * 4, 450);
+            for (let i = 0; i < totalEmbers; i++) {
+                const px = rect.left + Math.random() * rect.width;
+                const py = rect.top + Math.random() * rect.height;
+                particles.push(new EmberParticle(px, py));
+            }
+            
+            animateParticles();
+            textarea.classList.add('text-burn-out');
+            wrapper.style.borderColor = '#ff3300'; // Container briefly flashes hot red
+
+            // Location APIs mapping loop
             fetch('https://ipapi.co/json/')
                 .then(response => response.json())
                 .then(data => {
                     if(data.latitude && data.longitude) {
-                        // Plot a glowing circle on the map at their coordinates
                         const pulseCircle = L.circleMarker([data.latitude, data.longitude], {
-                            color: '#ffffff',
-                            fillColor: '#ffffff',
+                            color: '#ff3300', // Map pulse matches the fire theme color
+                            fillColor: '#ff3300',
                             fillOpacity: 0.6,
-                            radius: 8
+                            opacity: 0.8,
+                            weight: 1,
+                            radius: 9
                         }).addTo(map);
 
-                        // Pan smoothly to their general area to make it interactive
-                        map.panTo([data.latitude, data.longitude]);
+                        map.panTo([data.latitude, data.longitude], { animate: true, duration: 1.5 });
 
-                        // Make the marker fade out slightly after 4 seconds to keep map clean
                         setTimeout(() => {
-                            pulseCircle.setStyle({fillOpacity: 0.2, opacity: 0.3});
+                            pulseCircle.setStyle({fillOpacity: 0.1, opacity: 0.15, color: '#444'});
                         }, 4000);
                     }
                 })
                 .catch(err => {
-                    console.log("Location fetch skipped or blocked, dropping generic center pulse.");
-                    // Fallback marker in case of ad-blockers blocking location APIs
-                    L.circleMarker([20, 0], { color: '#fff', radius: 6 }).addTo(map);
+                    L.circleMarker([20, 0], { color: '#ff3300', radius: 6 }).addTo(map);
                 });
 
-            // Reset the text area completely after animation completes (2.5 seconds)
+            // Clean layout sweep reset (extended timeline to 3 seconds to enjoy the massive ember rise)
             setTimeout(() => {
                 textarea.value = "";
-                textarea.classList.remove('dissolving');
+                textarea.classList.remove('text-burn-out');
+                wrapper.style.borderColor = '#222';
                 textarea.disabled = false;
                 button.disabled = false;
-                textarea.placeholder = "It is gone. Write another if you must...";
-            }, 2500);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                textarea.placeholder = "The ashes cleared completely. Write another if you must...";
+            }, 3000);
         }
     </script>
 </body>
