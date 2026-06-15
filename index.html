@@ -4,8 +4,8 @@
     <!-- START AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5229473053528385"
      crossorigin="anonymous"></script>
-    <!-- START AdSense -->
-    
+    <!-- END AdSense -->
+
     <!-- START Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3J67SFKYQH"></script>
     <script>
@@ -16,178 +16,324 @@
       gtag('config', 'G-3J67SFKYQH');
     </script>
     <!-- END Google tag (gtag.js) -->
-
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoidSpeak — Release Anonymously</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>VoidSpeak | Release into the Void</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* Base Page Styling */
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-        body {
-            background-color: #000000;
-            color: #ffffff;
+            box-sizing: border-box;
             font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #cccccc;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
             align-items: center;
-            padding: 20px;
+            min-height: 100vh;
             overflow-x: hidden;
+            padding: 20px;
+            position: relative;
         }
+
         header {
             text-align: center;
-            margin: 40px 0 20px 0;
+            margin-top: 10px;
+            margin-bottom: 25px;
+            z-index: 5;
         }
-        header h1 {
-            font-size: 2.2rem;
-            letter-spacing: 8px;
+
+        h1 {
+            font-size: 2rem;
+            letter-spacing: 6px;
             color: #ffffff;
-            font-weight: 300;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
-        
-        /* Interactive Telemetry Map Container Placeholder */
-        #map-matrix {
-            width: 100%;
-            max-width: 800px;
-            height: 250px;
-            border: 1px solid #111111;
-            background: radial-gradient(circle, #050505 0%, #000000 100%);
-            margin-bottom: 30px;
-            position: relative;
-            border-radius: 4px;
+
+        p.subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 8px;
         }
-        
-        /* Terminal Input Area */
-        .input-container {
+
+        .container {
             width: 100%;
             max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            position: relative;
+            margin-bottom: 40px;
+            z-index: 5;
         }
-        textarea {
+
+        .input-wrapper {
+            position: relative;
             width: 100%;
             height: 150px;
-            background-color: #000000;
-            border: 1px solid #222222;
-            color: #aaaaaa;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 4px;
             padding: 15px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 1.1rem;
             resize: none;
             outline: none;
-            border-radius: 4px;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: color 0.3s ease, filter 0.5s ease;
         }
-        textarea:focus {
-            border-color: #444444;
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.03);
+
+        /* Seared text effect during release */
+        .text-burn-out {
+            color: #ff3300 !important;
+            filter: blur(4px);
+            caret-color: transparent !important;
+            pointer-events: none;
+            text-shadow: 0 0 8px #ff3300;
         }
-        
-        /* Action Button */
+
+        /* CRITICAL: Full screen overlays for unbounded particle drifting */
+        #burnCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999; /* Higher than map layers and inputs */
+        }
+
         button {
-            align-self: center;
-            background-color: #000000;
-            color: #ffffff;
-            border: 1px solid #ffffff;
-            padding: 12px 35px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9rem;
-            letter-spacing: 3px;
+            background: transparent;
+            border: 1px solid #444;
+            color: #999;
+            padding: 12px 20px;
+            margin-top: 15px;
             cursor: pointer;
-            text-transform: uppercase;
             border-radius: 4px;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.1s ease;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
+
         button:hover {
-            background-color: #ffffff;
+            background: #ffffff;
             color: #000000;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-
-        /* NEW: Cinematic Dissolve Animation Class */
-        .void-dissolve {
-            animation: dissolveIntoVoid 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-            pointer-events: none; /* Prevents typing/clicking during animation */
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255,255,255,0.15);
         }
 
-        @keyframes dissolveIntoVoid {
-            0% {
-                opacity: 1;
-                transform: scale(1);
-                filter: blur(0px);
-                color: #aaaaaa;
-            }
-            50% {
-                color: #222222; /* Darkens sharply like fading ash */
-                filter: blur(2px);
-                border-color: #111111;
-            }
-            100% {
-                opacity: 0;
-                transform: scale(0.96); /* Slightly shrinks down into the screen background */
-                filter: blur(10px); /* Deeply blurs out to invisible */
-                border-color: #000000;
-            }
+        button:disabled {
+            border-color: #111 !important;
+            color: #333 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            cursor: default;
+        }
+
+        #map {
+            width: 100%;
+            max-width: 800px;
+            height: 350px;
+            border-radius: 4px;
+            border: 1px solid #1a1a1a;
+            background: #0d0d0d;
+            z-index: 1;
+        }
+
+        .leaflet-container {
+            background: #0d0d0d !important;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 30px 20px;
+            font-size: 0.8rem;
+            color: #333;
+            text-align: center;
+            z-index: 5;
+        }
+
+        footer a {
+            color: #555;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
+    <canvas id="burnCanvas"></canvas>
+
     <header>
         <h1>VOIDSPEAK</h1>
+        <p class="subtitle">Type your secret. Release it forever. Watch the world let go.</p>
     </header>
 
-    <div id="map-matrix">
+    <div class="container">
+        <div class="input-wrapper" id="wrapperBounds">
+            <textarea id="secretInput" placeholder="Write something you need to get off your chest..."></textarea>
         </div>
-
-    <div class="input-container">
-        <textarea id="secret-input" placeholder="Type your secret, regret, or unspoken thought into the void... Then release it forever."></textarea>
-        <button onclick="releaseSecret()">Release</button>
+        <button id="releaseBtn" onclick="releaseToVoid()">RELEASE INTO THE VOID</button>
     </div>
 
-    <hr style="border: 0; border-top: 1px solid #121212; margin: 80px 0 40px 0; width: 100%;">
+    <div id="map"></div>
 
-    <section id="about-section" style="max-width: 600px; margin: 0 auto 60px auto; line-height: 1.6; color: #555; font-size: 0.85rem; text-align: justify;">
-        <h3 style="color: #888; font-size: 1rem; margin-bottom: 15px; letter-spacing: 1px;">THE PHILOSOPHY & PRIVACY PROTOCOL</h3>
-        <p style="margin-bottom: 15px;">VoidSpeak is an interactive digital installations experiment investigating catharsis, anonymous expression, and ephemeral data design. In an era dominated by permanent data storage, profiling, and persistent histories, this platform offers a rare space for absolute digital detachment.</p>
-        <p style="margin-bottom: 15px;"><strong>Zero-Data Guarantee:</strong> The mechanism engineered here operates entirely inside your device's client browser cache. The precise text secrets typed into the terminal are never compiled, never backed up to a database, and permanently cease to exist from memory the instant you trigger the release command. We do not track identities, logs, or language profiles.</p>
-        <p style="margin-bottom: 15px;"><strong>Global Telemetry Mapping:</strong> When an extraction occurs, the application requests general, non-identifying municipal coordinates via browser location routing. This data point registers as a brief visual pulse on the dark canvas matrix above to symbolize human collective release in real-time, leaving no permanent analytical footprint behind.</p>
-        <p style="color: #444;">Compliance Operations Contact: contact@voidspeak.in</p>
-    </section>
-
-    <footer style="margin-top: auto; padding: 20px; font-size: 0.8rem; color: #222; text-align: center;">
-        <p>© 2026 VoidSpeak. All intellectual rights reserved. Registered Custom Domain Asset.</p>
+    <footer>
+        <p>© 2026 VoidSpeak | <a href="#privacy" onclick="alert('Privacy Guarantee: This website does not possess a backend or database for storing text. Your input vanishes permanently from your browser cache the instant you click Release.')">Privacy & Philosophy</a></p>
     </footer>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        function releaseSecret() {
-            const textarea = document.getElementById('secret-input');
+        // Initialize Map
+        const map = L.map('map', {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Particle Physics Engine Setup
+        const canvas = document.getElementById('burnCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class EmberParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3.5 + 1;
+                // Wider velocity vectors for violent outward eruption
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * -5 - 2; // Upward drift speed
+                
+                // Color array representing burning cycle: hot orange, searing red, ash charcoal
+                const colors = [
+                    `rgba(255, 68, 0, ${Math.random() * 0.4 + 0.6})`,  // Hot Orange
+                    `rgba(230, 0, 0, ${Math.random() * 0.4 + 0.6})`,    // Deep Searing Red
+                    `rgba(40, 40, 40, ${Math.random() * 0.3 + 0.4})`    // Ash Smoke
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.opacity = 1;
+                this.fade = Math.random() * 0.01 + 0.005; // Slower fade out for long distance flight
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                // Add a small wind sway effect
+                this.x += Math.sin(this.y / 30) * 0.5;
+                this.opacity -= this.fade;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.shadowBlur = this.color.includes('255') || this.color.includes('230') ? 8 : 0;
+                ctx.shadowColor = '#ff4400'; // Creates a subtle fire glow
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset canvas context state
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].opacity <= 0 || particles[i].y < 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            if (particles.length > 0) {
+                requestAnimationFrame(animateParticles);
+            }
+        }
+
+        function releaseToVoid() {
+            const textarea = document.getElementById('secretInput');
+            const button = document.getElementById('releaseBtn');
+            const wrapper = document.getElementById('wrapperBounds');
             
-            // Safety Check: If textbox has no content, cancel operation
-            if (!textarea.value.trim()) return;
+            if (textarea.value.trim() === "") {
+                alert("The void accepts everything, but you must type something first.");
+                return;
+            }
 
-            // Step 1: Attach the custom CSS dissolve class to initiate animation sequence
-            textarea.classList.add('void-dissolve');
+            textarea.disabled = true;
+            button.disabled = true;
 
-            // Step 2: (Optional Placeholder) Trigger your map pulse logic here so it fires right away!
-            // if (typeof triggerMapPulse === "function") { triggerMapPulse(); }
+            // Find exactly where the text input wrapper sits on the mobile/desktop layout window
+            const rect = wrapper.getBoundingClientRect();
+            resizeCanvas();
 
-            // Step 3: Hold processing execution for exactly 800ms while animation completes
+            // Spawn up to 450 fiery ember particles across the text box container space
+            const totalEmbers = Math.min(textarea.value.length * 4, 450);
+            for (let i = 0; i < totalEmbers; i++) {
+                const px = rect.left + Math.random() * rect.width;
+                const py = rect.top + Math.random() * rect.height;
+                particles.push(new EmberParticle(px, py));
+            }
+            
+            animateParticles();
+            textarea.classList.add('text-burn-out');
+            wrapper.style.borderColor = '#ff3300'; // Container briefly flashes hot red
+
+            // Location APIs mapping loop
+            fetch('https://ipapi.co/json/')
+                .then(response => response.json())
+                .then(data => {
+                    if(data.latitude && data.longitude) {
+                        const pulseCircle = L.circleMarker([data.latitude, data.longitude], {
+                            color: '#ff3300', // Map pulse matches the fire theme color
+                            fillColor: '#ff3300',
+                            fillOpacity: 0.6,
+                            opacity: 0.8,
+                            weight: 1,
+                            radius: 9
+                        }).addTo(map);
+
+                        map.panTo([data.latitude, data.longitude], { animate: true, duration: 1.5 });
+
+                        setTimeout(() => {
+                            pulseCircle.setStyle({fillOpacity: 0.1, opacity: 0.15, color: '#444'});
+                        }, 4000);
+                    }
+                })
+                .catch(err => {
+                    L.circleMarker([20, 0], { color: '#ff3300', radius: 6 }).addTo(map);
+                });
+
+            // Clean layout sweep reset (extended timeline to 3 seconds to enjoy the massive ember rise)
             setTimeout(() => {
-                textarea.value = ''; // Cleanly wipe memory arrays of string values
-                textarea.classList.remove('void-dissolve'); // Tear down class layer to restore terminal defaults
-            }, 800);
+                textarea.value = "";
+                textarea.classList.remove('text-burn-out');
+                wrapper.style.borderColor = '#222';
+                textarea.disabled = false;
+                button.disabled = false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                textarea.placeholder = "The ashes cleared completely. Write another if you must...";
+            }, 3000);
         }
     </script>
-
 </body>
 </html>
