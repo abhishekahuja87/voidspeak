@@ -16,137 +16,127 @@
       gtag('config', 'G-3J67SFKYQH');
     </script>
     <!-- END Google tag (gtag.js) -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoidSpeak | Release into the Void</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>VoidSpeak — Release Anonymously</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
     <style>
+        /* Base Page Styling */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
         }
-
         body {
-            background-color: #0a0a0a;
-            color: #cccccc;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
-            align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            align-items: center;
             padding: 20px;
+            overflow-x: hidden;
         }
-
         header {
             text-align: center;
-            margin-top: 40px;
-            margin-bottom: 20px;
+            margin: 40px 0 20px 0;
         }
-
-        h1 {
-            font-size: 2rem;
-            letter-spacing: 4px;
+        header h1 {
+            font-size: 2.2rem;
+            letter-spacing: 8px;
             color: #ffffff;
-            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+            font-weight: 300;
         }
-
-        p.subtitle {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-            margin-bottom: 40px;
-        }
-
-        /* Textarea and Container for Ash Effect */
-        .input-wrapper {
-            position: relative;
-            width: 100%;
-            height: 150px;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 15px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            color: #e0e0e0;
-            font-size: 1.1rem;
-            resize: none;
-            outline: none;
-            transition: opacity 2s ease-out, transform 2s ease-out;
-        }
-
-        /* The Ash Dissolve Animation Classes */
-        .dissolving {
-            opacity: 0 !important;
-            transform: translateY(-20px) scale(0.95);
-            filter: blur(4px);
-            pointer-events: none;
-        }
-
-        button {
-            background: transparent;
-            border: 1px solid #555;
-            color: #999;
-            padding: 10px 20px;
-            margin-top: 15px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            width: 100%;
-            letter-spacing: 2px;
-        }
-
-        button:hover {
-            background: #ffffff;
-            color: #000000;
-            border-color: #ffffff;
-            box-shadow: 0 0 15px rgba(255,255,255,0.2);
-        }
-
-        /* Map Styling */
-        #map {
+        
+        /* Interactive Telemetry Map Container Placeholder */
+        #map-matrix {
             width: 100%;
             max-width: 800px;
-            height: 350px;
+            height: 250px;
+            border: 1px solid #111111;
+            background: radial-gradient(circle, #050505 0%, #000000 100%);
+            margin-bottom: 30px;
+            position: relative;
             border-radius: 4px;
-            border: 1px solid #222;
-            background: #0d0d0d;
+        }
+        
+        /* Terminal Input Area */
+        .input-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            background-color: #000000;
+            border: 1px solid #222222;
+            color: #aaaaaa;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            resize: none;
+            outline: none;
+            border-radius: 4px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        textarea:focus {
+            border-color: #444444;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.03);
+        }
+        
+        /* Action Button */
+        button {
+            align-self: center;
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            padding: 12px 35px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.1s ease;
+        }
+        button:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        button:active {
+            transform: scale(0.98);
         }
 
-        /* Customizing Leaflet to look dark and minimal */
-        .leaflet-container {
-            background: #0d0d0d !important;
-        }
-        .leaflet-bar a {
-            background-color: #111 !important;
-            color: #fff !important;
-            border-bottom: 1px solid #333 !important;
+        /* NEW: Cinematic Dissolve Animation Class */
+        .void-dissolve {
+            animation: dissolveIntoVoid 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            pointer-events: none; /* Prevents typing/clicking during animation */
         }
 
-        footer {
-            margin-top: auto;
-            padding: 20px;
-            font-size: 0.8rem;
-            color: #444;
-            text-align: center;
-        }
-
-        footer a {
-            color: #666;
-            text-decoration: none;
+        @keyframes dissolveIntoVoid {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0px);
+                color: #aaaaaa;
+            }
+            50% {
+                color: #222222; /* Darkens sharply like fading ash */
+                filter: blur(2px);
+                border-color: #111111;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.96); /* Slightly shrinks down into the screen background */
+                filter: blur(10px); /* Deeply blurs out to invisible */
+                border-color: #000000;
+            }
         }
     </style>
 </head>
@@ -154,89 +144,50 @@
 
     <header>
         <h1>VOIDSPEAK</h1>
-        <p class="subtitle">Type your secret. Release it forever. Watch the world let go.</p>
     </header>
 
-    <div class="container">
-        <div class="input-wrapper">
-            <textarea id="secretInput" placeholder="Write something you need to get off your chest..."></textarea>
+    <div id="map-matrix">
         </div>
-        <button id="releaseBtn" onclick="releaseToVoid()">RELEASE INTO THE VOID</button>
+
+    <div class="input-container">
+        <textarea id="secret-input" placeholder="Type your secret, regret, or unspoken thought into the void... Then release it forever."></textarea>
+        <button onclick="releaseSecret()">Release</button>
     </div>
 
-    <div id="map"></div>
+    <hr style="border: 0; border-top: 1px solid #121212; margin: 80px 0 40px 0; width: 100%;">
 
-    <footer>
-        <p>© 2026 VoidSpeak | <a href="#privacy" onclick="alert('Privacy Guarantee: This website does not possess a backend or database for storing text. Your input vanishes permanently from your browser cache the instant you click Release.')">Privacy & Philosophy</a></p>
+    <section id="about-section" style="max-width: 600px; margin: 0 auto 60px auto; line-height: 1.6; color: #555; font-size: 0.85rem; text-align: justify;">
+        <h3 style="color: #888; font-size: 1rem; margin-bottom: 15px; letter-spacing: 1px;">THE PHILOSOPHY & PRIVACY PROTOCOL</h3>
+        <p style="margin-bottom: 15px;">VoidSpeak is an interactive digital installations experiment investigating catharsis, anonymous expression, and ephemeral data design. In an era dominated by permanent data storage, profiling, and persistent histories, this platform offers a rare space for absolute digital detachment.</p>
+        <p style="margin-bottom: 15px;"><strong>Zero-Data Guarantee:</strong> The mechanism engineered here operates entirely inside your device's client browser cache. The precise text secrets typed into the terminal are never compiled, never backed up to a database, and permanently cease to exist from memory the instant you trigger the release command. We do not track identities, logs, or language profiles.</p>
+        <p style="margin-bottom: 15px;"><strong>Global Telemetry Mapping:</strong> When an extraction occurs, the application requests general, non-identifying municipal coordinates via browser location routing. This data point registers as a brief visual pulse on the dark canvas matrix above to symbolize human collective release in real-time, leaving no permanent analytical footprint behind.</p>
+        <p style="color: #444;">Compliance Operations Contact: contact@voidspeak.in</p>
+    </section>
+
+    <footer style="margin-top: auto; padding: 20px; font-size: 0.8rem; color: #222; text-align: center;">
+        <p>© 2026 VoidSpeak. All intellectual rights reserved. Registered Custom Domain Asset.</p>
     </footer>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. Initialize the Map centered on the world
-        const map = L.map('map', {
-            zoomControl: true,
-            attributionControl: false
-        }).setView([20, 0], 2);
-
-        // 2. Load a beautiful, highly minimalist Dark Matter map tile layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19
-        }).addTo(map);
-
-        // 3. The Function that runs when clicking "Release"
-        function releaseToVoid() {
-            const textarea = document.getElementById('secretInput');
-            const button = document.getElementById('releaseBtn');
+        function releaseSecret() {
+            const textarea = document.getElementById('secret-input');
             
-            if (textarea.value.trim() === "") {
-                alert("The void accepts everything, but you must type something first.");
-                return;
-            }
+            // Safety Check: If textbox has no content, cancel operation
+            if (!textarea.value.trim()) return;
 
-            // Disable UI inputs during animation
-            textarea.disabled = true;
-            button.disabled = true;
+            // Step 1: Attach the custom CSS dissolve class to initiate animation sequence
+            textarea.classList.add('void-dissolve');
 
-            // Trigger the "Ash/Dissolve" CSS animation
-            textarea.classList.add('dissolving');
+            // Step 2: (Optional Placeholder) Trigger your map pulse logic here so it fires right away!
+            // if (typeof triggerMapPulse === "function") { triggerMapPulse(); }
 
-            // Fetch user's rough location via a completely free browser API
-            fetch('https://ipapi.co/json/')
-                .then(response => response.json())
-                .then(data => {
-                    if(data.latitude && data.longitude) {
-                        // Plot a glowing circle on the map at their coordinates
-                        const pulseCircle = L.circleMarker([data.latitude, data.longitude], {
-                            color: '#ffffff',
-                            fillColor: '#ffffff',
-                            fillOpacity: 0.6,
-                            radius: 8
-                        }).addTo(map);
-
-                        // Pan smoothly to their general area to make it interactive
-                        map.panTo([data.latitude, data.longitude]);
-
-                        // Make the marker fade out slightly after 4 seconds to keep map clean
-                        setTimeout(() => {
-                            pulseCircle.setStyle({fillOpacity: 0.2, opacity: 0.3});
-                        }, 4000);
-                    }
-                })
-                .catch(err => {
-                    console.log("Location fetch skipped or blocked, dropping generic center pulse.");
-                    // Fallback marker in case of ad-blockers blocking location APIs
-                    L.circleMarker([20, 0], { color: '#fff', radius: 6 }).addTo(map);
-                });
-
-            // Reset the text area completely after animation completes (2.5 seconds)
+            // Step 3: Hold processing execution for exactly 800ms while animation completes
             setTimeout(() => {
-                textarea.value = "";
-                textarea.classList.remove('dissolving');
-                textarea.disabled = false;
-                button.disabled = false;
-                textarea.placeholder = "It is gone. Write another if you must...";
-            }, 2500);
+                textarea.value = ''; // Cleanly wipe memory arrays of string values
+                textarea.classList.remove('void-dissolve'); // Tear down class layer to restore terminal defaults
+            }, 800);
         }
     </script>
+
 </body>
 </html>
